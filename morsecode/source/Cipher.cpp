@@ -52,17 +52,36 @@ Cipher::~Cipher() {}
 
 Morse Cipher::encrypt(char letter) {
 
-    uBit.serial.printf("before XOR\n");
-    letter = letter ^ Cipher::key[0] ^ Cipher::key[1] ^ Cipher::key[2];
-    uBit.serial.printf("after XOR\n");
-    Morse morse = charToMorse(letter);
-    uBit.serial.printf("after charToMorse\n");
-    return morse;
+    uBit.serial.printf("Before encrypt: %c\n", letter);
+
+    switch (letter) {
+
+        case 'A': return charToMorse('X');
+        case 'B': return charToMorse('Y');
+        case 'C': return charToMorse('Z');
+        case '0': return charToMorse('7');
+        case '1': return charToMorse('8');
+        case '2': return charToMorse('9');
+        default : return charToMorse(letter - 3);
+    }
 }
 
 char Cipher::decrypt(Morse morse) {
 
-    return morseToChar(morse) ^ Cipher::key[0] ^ Cipher::key[1] ^ Cipher::key[2];
+    char letter = morseToChar(morse);
+
+    uBit.serial.printf("Before decrypt: %c\n", letter);
+
+    switch (letter) {
+
+        case 'X': return 'A';
+        case 'Y': return 'B';
+        case 'Z': return 'C';
+        case '7': return '0';
+        case '8': return '1';
+        case '9': return '2';
+        default : return letter + 3;
+    }
 }
 
 char Cipher::morseToChar(Morse morse) {
@@ -80,6 +99,8 @@ char Cipher::morseToChar(Morse morse) {
 }
 
 Morse Cipher::charToMorse(char letter) {
+
+    uBit.serial.printf("charToMorse");
 
     string morseString = getKey(letter);
 

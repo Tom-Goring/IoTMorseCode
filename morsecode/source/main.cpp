@@ -18,8 +18,6 @@ bool pressed = false;
 
 char role = '\0';
 
-char Cipher::key[3] = {'T', 'O', 'M'};
-
 int main() {
 
     uBit.init();
@@ -100,25 +98,13 @@ void executeSenderProtocol() {
             }
             else if (t_delta > 1000) {
 
-                // encrypt letter
-                // send letter
-                // clear letter
-
-                uBit.serial.printf("Before morseToChar\n");
-
                 char letter = Cipher::morseToChar(morse);
 
                 uBit.serial.printf("%c\n", letter);
 
-                uBit.serial.printf("Before encrypt\n");
-
-                uBit.serial.printf("%c, %c, %c\n", Cipher::key[0], Cipher::key[1], Cipher::key[2]);
-
                 morse = Cipher::encrypt(letter);
 
-                uBit.serial.printf("Before print\n");
-
-                uBit.serial.printf("\n");
+                uBit.serial.printf("after encryption: %c\n", Cipher::morseToChar(morse));
 
                 for (int i = 0; i < morse->size(); ++i) {
 
