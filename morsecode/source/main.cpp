@@ -2,10 +2,21 @@
 // Created by tom on 19/02/19.
 //
 
-#include <vector>
-#include "MicroBit.h"
+#include <MicroBit.h>
 #include "defs.h"
+#include "Cipher.h"
 
+MicroBit uBit;
+
+MicroBitButton buttonA(MICROBIT_PIN_BUTTON_A, MICROBIT_ID_BUTTON_A);
+MicroBitButton buttonB(MICROBIT_PIN_BUTTON_B, MICROBIT_ID_BUTTON_B);
+
+MicroBitPin P1(MICROBIT_ID_IO_P1, MICROBIT_PIN_P1, PIN_CAPABILITY_DIGITAL);
+
+uint64_t t_reading, t_delta;
+bool pressed = false;
+
+char role = '\0';
 
 int main() {
 
@@ -52,7 +63,7 @@ void executeRoleDuties() {
 
 void executeSenderProtocol() {
 
-    std::vector<char> *morse_character = new vector<char>;
+    Morse morse;
 
     while (true) {
 
@@ -73,13 +84,13 @@ void executeSenderProtocol() {
 
                 uBit.serial.printf(".");
                 uBit.display.print(".");
-                morse_character->push_back('.');
+                morse->push_back('.');
             }
             else if (t_delta > 350 && t_delta < 600) {
 
                 uBit.serial.printf("-");
                 uBit.display.print("-");
-                morse_character->push_back('-');
+                morse->push_back('-');
             }
             else if (t_delta > 600 && t_delta < 1000) {
 
@@ -93,17 +104,17 @@ void executeSenderProtocol() {
 
                 uBit.serial.printf("\n");
 
-                for (int i = 0; i < morse_character->size(); ++i) {
+                for (int i = 0; i < morse->size(); ++i) {
 
-                    uBit.serial.printf("%c", morse_character->at(i));
-                    uBit.display.print(morse_character->at(i));
+                    uBit.serial.printf("%c", morse->at(static_cast<unsigned long>(i)));
+                    uBit.display.print(morse->at(static_cast<unsigned long>(i)));
                     uBit.sleep(250);
                     uBit.display.clear();
                     uBit.sleep(100);
                 }
 
                 uBit.serial.printf("\n");
-                morse_character->clear();
+                morse->clear();
             }
         }
 
@@ -115,7 +126,7 @@ void executeSenderProtocol() {
 
 void executeReceiverProtocol() {
 
-    std::vector<char> *morse_character = new vector<char>;
+    Morse morse;
     bool high = false;
 
     while (true) {
@@ -139,11 +150,11 @@ void executeReceiverProtocol() {
 
             if (t_delta > 50 && t_delta < 350) {
 
-                morse_character->push_back('.');
+                morse->push_back('.');
             }
             else if (t_delta > 350 && t_delta < 600) {
 
-                morse_character->push_back('-');
+                morse->push_back('-');
             }
             else if (t_delta > 1000) {
 
