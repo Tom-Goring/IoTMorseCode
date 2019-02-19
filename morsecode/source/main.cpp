@@ -37,11 +37,6 @@ void setRole(char roleToSet) {
 
 void executeRoleDuties() {
 
-    if (role == SENDER)
-        uBit.display.print("SENDER");
-    if (role == RECEIVER)
-        uBit.display.print("RECEIVER");
-
     while (true) {
 
         if (role == SENDER) {
@@ -61,6 +56,8 @@ void executeSenderProtocol() {
 
     while (true) {
 
+        uBit.display.print(">");
+
         t_reading = system_timer_current_time();
 
         while (buttonA.isPressed()) {
@@ -75,11 +72,13 @@ void executeSenderProtocol() {
             if (t_delta > 50 && t_delta < 350) {
 
                 uBit.serial.printf(".");
+                uBit.display.print(".");
                 morse_character->push_back('.');
             }
             else if (t_delta > 350 && t_delta < 600) {
 
                 uBit.serial.printf("-");
+                uBit.display.print("-");
                 morse_character->push_back('-');
             }
             else if (t_delta > 600 && t_delta < 1000) {
@@ -97,6 +96,10 @@ void executeSenderProtocol() {
                 for (int i = 0; i < morse_character->size(); ++i) {
 
                     uBit.serial.printf("%c", morse_character->at(i));
+                    uBit.display.print(morse_character->at(i));
+                    uBit.sleep(250);
+                    uBit.display.clear();
+                    uBit.sleep(100);
                 }
 
                 uBit.serial.printf("\n");
@@ -112,5 +115,40 @@ void executeSenderProtocol() {
 
 void executeReceiverProtocol() {
 
+    std::vector<char> *morse_character = new vector<char>;
+    bool high = false;
 
+    while (true) {
+
+        uBit.display.print("<");
+
+        t_reading = system_timer_current_time();
+
+        while (P1.getDigitalValue()) {
+
+            high = true;
+            t_delta = system_timer_current_time() - t_reading;
+
+            if (t_delta > 50 && t_delta < 350) {
+
+                uBit.display.print(".");
+            }
+        }
+
+        if (high) {
+
+            if (t_delta > 50 && t_delta < 350) {
+
+                morse_character->push_back('.');
+            }
+            else if (t_delta > 350 && t_delta < 600) {
+
+                morse_character->push_back('-');
+            }
+            else if (t_delta > 1000) {
+
+                // decode and display char
+            }
+        }
+    }
 }
