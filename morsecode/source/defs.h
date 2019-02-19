@@ -9,16 +9,21 @@
 #include "string"
 
 #define SENDER 's'
-#define RECIEVER 'r'
+#define RECEIVER 'r'
 
-void setupRole();
+void waitForRoleSelection();
 void setRole(char role);
+void executeRoleDuties();
 void executeSenderProtocol();
+void executeReceiverProtocol();
 
 MicroBit uBit;
 
 MicroBitButton buttonA(MICROBIT_PIN_BUTTON_A, MICROBIT_ID_BUTTON_A);
 MicroBitButton buttonB(MICROBIT_PIN_BUTTON_B, MICROBIT_ID_BUTTON_A);
+
+uint64_t t_reading, t_delta;
+bool pressed = false;
 
 char role = '\0';
 
