@@ -1,0 +1,11 @@
+{
+  "name": "iotmorsecode",
+  "version": "1.0.0",
+  "description": "MicroBit project to allow to MicroBits to communicate in morse.",
+  "license": "MIT",
+  "dependencies": {
+    "microbit": "lancaster-university/microbit"
+  },
+  "targetDependencies": {},
+  "bin": "./source"
+}
