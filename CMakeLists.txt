@@ -17,18 +17,18 @@ file(GLOB_RECURSE project
         morsecode/module.json
         README.md)
 
-include_directories(yotta_modules/microbit/inc
-        yotta_modules/microbit-dal/inc/bluetooth
-        yotta_modules/microbit-dal/inc/core
-        yotta_modules/microbit-dal/inc/drivers
-        yotta_modules/microbit-dal/inc/platform
-        yotta_modules/microbit-dal/inc/types
-        yotta_modules/microbit-dal/source/asm
-        yotta_modules/microbit-dal/source/bluetooth
-        yotta_modules/microbit-dal/source/core
-        yotta_modules/microbit-dal/source/drivers
-        yotta_modules/microbit-dal/source/types
-        yotta_modules/ble)
+include_directories(morsecode/yotta_modules/microbit/inc
+        morsecode/yotta_modules/microbit-dal/inc/bluetooth
+        morsecode/yotta_modules/microbit-dal/inc/core
+        morsecode/yotta_modules/microbit-dal/inc/drivers
+        morsecode/yotta_modules/microbit-dal/inc/platform
+        morsecode/yotta_modules/microbit-dal/inc/types
+        morsecode/yotta_modules/microbit-dal/source/asm
+        morsecode/yotta_modules/microbit-dal/source/bluetooth
+        morsecode/yotta_modules/microbit-dal/source/core
+        morsecode/yotta_modules/microbit-dal/source/drivers
+        morsecode/yotta_modules/microbit-dal/source/types
+        morsecode/yotta_modules/ble)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "build")
 
