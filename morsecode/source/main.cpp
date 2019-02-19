@@ -18,6 +18,8 @@ bool pressed = false;
 
 char role = '\0';
 
+char Cipher::key[3] = {'T', 'O', 'M'};
+
 int main() {
 
     uBit.init();
@@ -102,18 +104,23 @@ void executeSenderProtocol() {
                 // send letter
                 // clear letter
 
+                uBit.serial.printf("Before morseToChar\n");
+
+                char letter = Cipher::morseToChar(morse);
+
+                uBit.serial.printf("Before encrypt\n");
+
+                morse = Cipher::encrypt(letter);
+
+                uBit.serial.printf("Before print\n");
+
                 uBit.serial.printf("\n");
 
                 for (int i = 0; i < morse->size(); ++i) {
 
-                    uBit.serial.printf("%c", morse->at(static_cast<unsigned long>(i)));
-                    uBit.display.print(morse->at(static_cast<unsigned long>(i)));
-                    uBit.sleep(250);
-                    uBit.display.clear();
-                    uBit.sleep(100);
+                    uBit.serial.printf("%c", morse->at(i));
                 }
 
-                uBit.serial.printf("\n");
                 morse->clear();
             }
         }

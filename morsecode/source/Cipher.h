@@ -19,13 +19,13 @@ public:
     Cipher();
     ~Cipher();
 
-    Morse charToMorse(char letter);
-    Morse encrypt(char letter);
-    char decrypt(Morse);
-    char morseToChar(Morse);
-    string getKey(char);
+    static Morse charToMorse(char letter);
+    static Morse encrypt(char letter);
+    static char decrypt(Morse);
+    static char morseToChar(Morse);
+    static string getKey(char);
 
-    char key[3] = {'T', 'O', 'M'};
+    static char key[3];
 };
 
 

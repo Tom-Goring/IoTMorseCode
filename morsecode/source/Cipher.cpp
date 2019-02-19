@@ -3,6 +3,7 @@
 //
 
 #include "Cipher.h"
+#include "MicroBit.h"
 
 std::map<std::string, char> morse_to_char = {
         {".-", 'A'},
@@ -49,14 +50,14 @@ Cipher::~Cipher() {}
 
 Morse Cipher::encrypt(char letter) {
 
-    letter = letter ^ key[0] ^ key[1] ^ key[2];
+    letter = letter ^ Cipher::key[0] ^ Cipher::key[1] ^ Cipher::key[2];
     Morse morse = charToMorse(letter);
     return morse;
 }
 
 char Cipher::decrypt(Morse morse) {
 
-    return morseToChar(morse) ^ key[0] ^ key[1] ^ key[2];
+    return morseToChar(morse) ^ Cipher::key[0] ^ Cipher::key[1] ^ Cipher::key[2];
 }
 
 char Cipher::morseToChar(Morse morse) {
