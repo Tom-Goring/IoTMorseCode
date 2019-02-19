@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.9.6)
-project(iotmorsecode)
+project(iot-challenge-two)
 
 set(CMAKE_CXX_STANDARD 11)
 cmake_policy(SET CMP0054 OLD)
