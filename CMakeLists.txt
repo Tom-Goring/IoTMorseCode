@@ -17,7 +17,9 @@ file(GLOB_RECURSE project
         morsecode/module.json
         README.md)
 
-include_directories(morsecode/yotta_modules/microbit/inc
+include_directories(morsecode/yotta_modules/mbed-classic/targets/hal/TARGET_NORDIC/TARGET_MCU_NRF51822/TARGET_NRF51_MICROBIT
+        morsecode/yotta_modules/mbed-classic/api
+        morsecode/yotta_modules/microbit/inc
         morsecode/yotta_modules/microbit-dal/inc/bluetooth
         morsecode/yotta_modules/microbit-dal/inc/core
         morsecode/yotta_modules/microbit-dal/inc/drivers
@@ -32,4 +34,4 @@ include_directories(morsecode/yotta_modules/microbit/inc
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "build")
 
-add_executable(iotmorsecode ${sources} morsecode/source/main.cpp)
+add_executable(iotmorsecode ${sources} morsecode/source/main.cpp morsecode/source/def.h)
