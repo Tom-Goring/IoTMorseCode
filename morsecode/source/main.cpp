@@ -65,6 +65,8 @@ void executeSenderProtocol() {
 
     Morse morse;
 
+    uBit.sleep(200);
+
     while (true) {
 
         uBit.display.print(">");
@@ -82,14 +84,14 @@ void executeSenderProtocol() {
 
             if (t_delta > 50 && t_delta < 350) {
 
-                uBit.serial.printf(".");
                 uBit.display.print(".");
+                uBit.sleep(250);
                 morse->push_back('.');
             }
             else if (t_delta > 350 && t_delta < 600) {
 
-                uBit.serial.printf("-");
                 uBit.display.print("-");
+                uBit.sleep(250);
                 morse->push_back('-');
             }
             else if (t_delta > 600 && t_delta < 1000) {
@@ -104,7 +106,7 @@ void executeSenderProtocol() {
 
                 morse = Cipher::encrypt(letter);
 
-                uBit.serial.printf("after encryption: %c\n", Cipher::morseToChar(morse));
+                uBit.serial.printf("%c\n", Cipher::morseToChar(morse));
 
                 for (int i = 0; i < morse->size(); ++i) {
 
@@ -120,11 +122,12 @@ void executeSenderProtocol() {
     }
 }
 
-
 void executeReceiverProtocol() {
 
     Morse morse;
     bool high = false;
+
+    uBit.sleep(200);
 
     while (true) {
 
@@ -155,8 +158,19 @@ void executeReceiverProtocol() {
             }
             else if (t_delta > 1000) {
 
-                // decode and display char
+               char letter = uBit.serial.read();
+               morse = Cipher::encrypt(letter);
+               letter = Cipher::decrypt(morse);
+               uBit.display.print(letter);
+               uBit.sleep(1000);
             }
         }
     }
+}
+
+void sendLetter(char letter, uint32_t pause_duration) {
+
+    P1.setDigitalValue(true);
+    uBit.sleep(pause_duration);
+    P1.setDigitalValue(false);
 }
