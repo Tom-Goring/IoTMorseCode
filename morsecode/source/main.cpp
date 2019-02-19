@@ -6,7 +6,7 @@
 #include "defs.h"
 #include "Cipher.h"
 
-MicroBit uBit;
+extern MicroBit uBit;
 
 MicroBitButton buttonA(MICROBIT_PIN_BUTTON_A, MICROBIT_ID_BUTTON_A);
 MicroBitButton buttonB(MICROBIT_PIN_BUTTON_B, MICROBIT_ID_BUTTON_B);
@@ -108,7 +108,11 @@ void executeSenderProtocol() {
 
                 char letter = Cipher::morseToChar(morse);
 
+                uBit.serial.printf("%c\n", letter);
+
                 uBit.serial.printf("Before encrypt\n");
+
+                uBit.serial.printf("%c, %c, %c\n", Cipher::key[0], Cipher::key[1], Cipher::key[2]);
 
                 morse = Cipher::encrypt(letter);
 

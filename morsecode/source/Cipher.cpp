@@ -44,14 +44,19 @@ std::map<std::string, char> morse_to_char = {
         {"----.", '9'}
 };
 
+MicroBit uBit;
+
 Cipher::Cipher() {}
 
 Cipher::~Cipher() {}
 
 Morse Cipher::encrypt(char letter) {
 
+    uBit.serial.printf("before XOR\n");
     letter = letter ^ Cipher::key[0] ^ Cipher::key[1] ^ Cipher::key[2];
+    uBit.serial.printf("after XOR\n");
     Morse morse = charToMorse(letter);
+    uBit.serial.printf("after charToMorse\n");
     return morse;
 }
 
@@ -64,11 +69,17 @@ char Cipher::morseToChar(Morse morse) {
 
     string* morseString = new string(morse->begin(), morse->end());
     char letter = morse_to_char[*morseString];
+
+    if (letter == '\0') {
+
+        return '!';
+    }
+
     delete morseString;
     return letter;
 }
 
-Morse Cipher::charToMorse(const char letter) {
+Morse Cipher::charToMorse(char letter) {
 
     string morseString = getKey(letter);
 
