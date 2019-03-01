@@ -147,13 +147,15 @@ void senderProtocol() {
 
             ubit.display.print(".");
             morse.append(".");
-            ubit.sleep(30);
+            ubit.sleep(100);
+            ubit.display.clear();
         }
         else if (signal_duration > 300 && signal_duration < 600) {
 
             ubit.display.print("-");
             morse.append("-");
-            ubit.sleep(30);
+            ubit.sleep(100);
+            ubit.display.clear();
         }
     }
 
@@ -172,7 +174,6 @@ void senderProtocol() {
         endOfLetter = false;
     }
 
-    ubit.display.clear();
     ubit.sleep(50);
 }
 
@@ -206,7 +207,7 @@ void sendMorse(std::string morseToSend) {
         pin.setDigitalValue(1);
         ubit.sleep(getCharacterPauseDuration(elem));
         pin.setDigitalValue(0);
-        ubit.sleep(250);
+        ubit.sleep(50);
     }
 
     pin.setDigitalValue(0);
