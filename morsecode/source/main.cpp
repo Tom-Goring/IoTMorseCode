@@ -1,6 +1,5 @@
 #include "MicroBit.h"
-#include <map>
-#include "defs.h"
+#include "Cipher.h"
 
 #define SENDER true
 #define RECEIVER false
@@ -23,6 +22,8 @@ void receiverProtocol();
 void detectEndOfLetterPin();
 void senderProtocol();
 void detectEndOfLetterButton();
+void sendMorse(std::string morseToSend);
+int getCharacterPauseDuration(char letter);
 
 int main() {
 
@@ -30,8 +31,6 @@ int main() {
     ubit.messageBus.listen(MICROBIT_ID_BUTTON_B, MICROBIT_BUTTON_EVT_CLICK, switchMode);
 
     for (;;) {
-
-        ubit.serial.printf("mode: %d\n", mode);
 
         if (mode == RECEIVER) {
 
@@ -58,8 +57,6 @@ void switchMode(MicroBitEvent) {
 
 void receiverProtocol() {
 
-    ubit.serial.printf("executing receiver protocol\n");
-
     start_time = 0;
     signal_duration = 0;
 
@@ -76,36 +73,34 @@ void receiverProtocol() {
 
     if (signal_received) {
 
-        if (signal_duration > 0 && signal_duration < 200) {
+        if (signal_duration > 150 && signal_duration < 300) {
 
             ubit.display.print(".");
             morse.append(".");
-            ubit.sleep(30);
         }
-        else if (signal_duration > 200 && signal_duration < 500) {
+        else if (signal_duration > 300 && signal_duration < 600) {
 
             ubit.display.print("-");
             morse.append("-");
-            ubit.sleep(30);
-        }
-        else if (endOfLetter) {
-
-            ubit.sleep(100);
-
-            if (morse.size() != 0) {
-
-                ubit.serial.printf("%c\n", morseToChar(morse));
-                ubit.display.print(morseToChar(morse));
-                ubit.sleep(500);
-            }
-
-            morse.clear();
-            endOfLetter = false;
         }
     }
 
+    if (endOfLetter) {
+
+        ubit.sleep(100);
+
+        if (morse.size() != 0) {
+
+            ubit.serial.printf("%c\n", morseToChar(morse));
+            ubit.display.print(morseToChar(morse));
+            ubit.sleep(500);
+        }
+
+        morse.clear();
+        endOfLetter = false;
+    }
+
     ubit.display.clear();
-    ubit.sleep(50);
 }
 
 void detectEndOfLetterPin() {
@@ -131,17 +126,6 @@ void detectEndOfLetterPin() {
 
 void senderProtocol() {
 
-    if (buttonA.isPressed()) {
-
-        pin.setDigitalValue(1);
-    }
-    else {
-
-        pin.setDigitalValue(0);
-    }
-
-    /*ubit.serial.printf("executing sender protocol\n");
-
     start_time = 0;
     signal_duration = 0;
     signal_received = false;
@@ -149,8 +133,6 @@ void senderProtocol() {
     start_time = system_timer_current_time();
 
     create_fiber(detectEndOfLetterButton);
-
-    ubit.serial.printf("before button check\n");
 
     while (buttonA.isPressed()) {
 
@@ -161,30 +143,29 @@ void senderProtocol() {
 
     if (signal_received) {
 
-        ubit.serial.printf("signal received\n");
-
-        if (signal_duration > 0 && signal_duration < 200) {
+        if (signal_duration > 150 && signal_duration < 300) {
 
             ubit.display.print(".");
             morse.append(".");
             ubit.sleep(30);
         }
-        else if (signal_duration > 200 && signal_duration < 500) {
+        else if (signal_duration > 300 && signal_duration < 600) {
 
             ubit.display.print("-");
             morse.append("-");
             ubit.sleep(30);
         }
-        else if (endOfLetter) {
+    }
 
-            ubit.sleep(100);
+    if (endOfLetter) {
 
-            if (morse.size() != 0) {
+        if (morse.size() != 0 && morseToChar(morse) != '!') {
 
-                ubit.serial.printf("%c\n", morseToChar(morse));
-                ubit.display.print(morseToChar(morse));
-                ubit.sleep(500);
-            }
+            char morseAsChar = morseToChar(morse);
+            char encryptedChar = encryptChar(morseAsChar);
+
+            std::string encryptedMorse = charToMorse(encryptedChar);
+            sendMorse(encryptedMorse);
         }
 
         morse.clear();
@@ -192,10 +173,10 @@ void senderProtocol() {
     }
 
     ubit.display.clear();
-    ubit.sleep(50);*/
+    ubit.sleep(50);
 }
 
-/*void detectEndOfLetterButton() {
+void detectEndOfLetterButton() {
 
     endOfLetter = false;
     uint64_t start_time;
@@ -207,11 +188,38 @@ void senderProtocol() {
 
         signal_non_duration = system_timer_current_time() - start_time;
 
-        if (signal_non_duration > 1500) {
+        if (signal_non_duration > 1000) {
 
             endOfLetter = true;
         }
 
         ubit.sleep(10);
     }
-}*/
+}
+
+void sendMorse(std::string morseToSend) {
+
+    for (char elem : morseToSend) {
+
+        ubit.serial.printf("sending: %c\n", elem);
+
+        pin.setDigitalValue(1);
+        ubit.sleep(getCharacterPauseDuration(elem));
+        pin.setDigitalValue(0);
+        ubit.sleep(250);
+    }
+
+    pin.setDigitalValue(0);
+}
+
+int getCharacterPauseDuration(char letter) {
+
+    if (letter == '.') {
+
+        return 225;
+    }
+    else if (letter == '-') {
+
+        return 450;
+    }
+}
