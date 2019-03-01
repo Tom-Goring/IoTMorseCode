@@ -11,7 +11,7 @@ file(GLOB_RECURSE sources
 file(GLOB_RECURSE project
         .gitignore
         morsecode/.yotta.json
-        config.json
+        morsecode/config.json
         LICENSE
         morsecode/Makefile
         morsecode/module.json
@@ -34,4 +34,4 @@ include_directories(morsecode/yotta_modules/mbed-classic/targets/hal/TARGET_NORD
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "build")
 
-add_executable(iotmorsecode ${sources} morsecode/source/main.cpp morsecode/source/defs.h morsecode/source/Morse.cpp morsecode/source/Morse.h morsecode/source/Cipher.cpp morsecode/source/Cipher.h)
+add_executable(iotmorsecode ${sources} morsecode/source/main.cpp morsecode/source/defs.h morsecode/source/Cipher.cpp morsecode/source/Cipher.h)

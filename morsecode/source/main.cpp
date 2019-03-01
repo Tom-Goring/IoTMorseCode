@@ -1,176 +1,217 @@
-//
-// Created by tom on 19/02/19.
-//
-
-#include <MicroBit.h>
+#include "MicroBit.h"
+#include <map>
 #include "defs.h"
-#include "Cipher.h"
 
-extern MicroBit uBit;
+#define SENDER true
+#define RECEIVER false
 
+MicroBit ubit;
 MicroBitButton buttonA(MICROBIT_PIN_BUTTON_A, MICROBIT_ID_BUTTON_A);
-MicroBitButton buttonB(MICROBIT_PIN_BUTTON_B, MICROBIT_ID_BUTTON_B);
+MicroBitPin pin(MICROBIT_ID_IO_P1, MICROBIT_PIN_P1, PIN_CAPABILITY_DIGITAL);
 
-MicroBitPin P1(MICROBIT_ID_IO_P1, MICROBIT_PIN_P1, PIN_CAPABILITY_DIGITAL);
+uint64_t start_time;
+uint64_t signal_duration = 0;
 
-uint64_t t_reading, t_delta;
-bool pressed = false;
+std::string morse;
 
-char role = '\0';
+bool mode = RECEIVER;
+bool signal_received = false;
+bool endOfLetter;
+
+void switchMode(MicroBitEvent);
+void receiverProtocol();
+void detectEndOfLetterPin();
+void senderProtocol();
+void detectEndOfLetterButton();
 
 int main() {
 
-    uBit.init();
-    waitForRoleSelection();
-    executeRoleDuties();
-}
+    ubit.init();
+    ubit.messageBus.listen(MICROBIT_ID_BUTTON_B, MICROBIT_BUTTON_EVT_CLICK, switchMode);
 
-void waitForRoleSelection() {
+    for (;;) {
 
-    while (role == '\0') {
+        ubit.serial.printf("mode: %d\n", mode);
 
-        uBit.display.print("@");
+        if (mode == RECEIVER) {
 
-        if (buttonA.isPressed())
-            setRole(SENDER);
-
-        if (buttonB.isPressed())
-            setRole(RECEIVER);
-
-        uBit.sleep(50);
-    }
-}
-
-void setRole(char roleToSet) {
-
-    role = roleToSet;
-}
-
-void executeRoleDuties() {
-
-    while (true) {
-
-        if (role == SENDER) {
-
-            executeSenderProtocol();
+            receiverProtocol();
         }
         else {
 
-            executeReceiverProtocol();
+            senderProtocol();
         }
+
+
+        ubit.sleep(100);
     }
 }
 
-void executeSenderProtocol() {
+void switchMode(MicroBitEvent) {
 
-    Morse morse;
+    morse.clear();
+    mode = !mode;
+    ubit.display.print(mode);
+    ubit.sleep(500);
+    ubit.display.clear();
+}
 
-    uBit.sleep(200);
+void receiverProtocol() {
 
-    while (true) {
+    ubit.serial.printf("executing receiver protocol\n");
 
-        uBit.display.print(">");
+    start_time = 0;
+    signal_duration = 0;
 
-        t_reading = system_timer_current_time();
+    start_time = system_timer_current_time();
 
-        while (buttonA.isPressed()) {
+    create_fiber(detectEndOfLetterPin);
 
-            pressed = true;
+    while (pin.getDigitalValue()) {
+
+        signal_received = true;
+    }
+
+    signal_duration = system_timer_current_time() - start_time;
+
+    if (signal_received) {
+
+        if (signal_duration > 0 && signal_duration < 200) {
+
+            ubit.display.print(".");
+            morse.append(".");
+            ubit.sleep(30);
+        }
+        else if (signal_duration > 200 && signal_duration < 500) {
+
+            ubit.display.print("-");
+            morse.append("-");
+            ubit.sleep(30);
+        }
+        else if (endOfLetter) {
+
+            ubit.sleep(100);
+
+            if (morse.size() != 0) {
+
+                ubit.serial.printf("%c\n", morseToChar(morse));
+                ubit.display.print(morseToChar(morse));
+                ubit.sleep(500);
+            }
+
+            morse.clear();
+            endOfLetter = false;
+        }
+    }
+
+    ubit.display.clear();
+    ubit.sleep(50);
+}
+
+void detectEndOfLetterPin() {
+
+    endOfLetter = false;
+    uint64_t start_time;
+    uint64_t signal_non_duration;
+
+    start_time = system_timer_current_time();
+
+    while (!pin.getDigitalValue() && !endOfLetter) {
+
+        signal_non_duration = system_timer_current_time() - start_time;
+
+        if (signal_non_duration > 1500) {
+
+            endOfLetter = true;
         }
 
-        t_delta = system_timer_current_time() - t_reading;
-
-        if (pressed) {
-
-            if (t_delta > 50 && t_delta < 350) {
-
-                uBit.display.print(".");
-                uBit.sleep(250);
-                morse->push_back('.');
-            }
-            else if (t_delta > 350 && t_delta < 600) {
-
-                uBit.display.print("-");
-                uBit.sleep(250);
-                morse->push_back('-');
-            }
-            else if (t_delta > 600 && t_delta < 1000) {
-
-                uBit.serial.send("");
-            }
-            else if (t_delta > 1000) {
-
-                char letter = Cipher::morseToChar(morse);
-
-                uBit.serial.printf("%c\n", letter);
-
-                morse = Cipher::encrypt(letter);
-
-                uBit.serial.printf("%c\n", Cipher::morseToChar(morse));
-
-                for (int i = 0; i < morse->size(); ++i) {
-
-                    uBit.serial.printf("%c", morse->at(i));
-                }
-
-                morse->clear();
-            }
-        }
-
-        pressed = false;
-        uBit.sleep(100);
+        ubit.sleep(10);
     }
 }
 
-void executeReceiverProtocol() {
+void senderProtocol() {
 
-    Morse morse;
-    bool high = false;
+    if (buttonA.isPressed()) {
 
-    uBit.sleep(200);
-
-    while (true) {
-
-        uBit.display.print("<");
-
-        t_reading = system_timer_current_time();
-
-        while (P1.getDigitalValue()) {
-
-            high = true;
-            t_delta = system_timer_current_time() - t_reading;
-
-            if (t_delta > 50 && t_delta < 350) {
-
-                uBit.display.print(".");
-            }
-        }
-
-        if (high) {
-
-            if (t_delta > 50 && t_delta < 350) {
-
-                morse->push_back('.');
-            }
-            else if (t_delta > 350 && t_delta < 600) {
-
-                morse->push_back('-');
-            }
-            else if (t_delta > 1000) {
-
-               char letter = uBit.serial.read();
-               morse = Cipher::encrypt(letter);
-               letter = Cipher::decrypt(morse);
-               uBit.display.print(letter);
-               uBit.sleep(1000);
-            }
-        }
+        pin.setDigitalValue(1);
     }
+    else {
+
+        pin.setDigitalValue(0);
+    }
+
+    /*ubit.serial.printf("executing sender protocol\n");
+
+    start_time = 0;
+    signal_duration = 0;
+    signal_received = false;
+
+    start_time = system_timer_current_time();
+
+    create_fiber(detectEndOfLetterButton);
+
+    ubit.serial.printf("before button check\n");
+
+    while (buttonA.isPressed()) {
+
+        signal_received = true;
+    }
+
+    signal_duration = system_timer_current_time() - start_time;
+
+    if (signal_received) {
+
+        ubit.serial.printf("signal received\n");
+
+        if (signal_duration > 0 && signal_duration < 200) {
+
+            ubit.display.print(".");
+            morse.append(".");
+            ubit.sleep(30);
+        }
+        else if (signal_duration > 200 && signal_duration < 500) {
+
+            ubit.display.print("-");
+            morse.append("-");
+            ubit.sleep(30);
+        }
+        else if (endOfLetter) {
+
+            ubit.sleep(100);
+
+            if (morse.size() != 0) {
+
+                ubit.serial.printf("%c\n", morseToChar(morse));
+                ubit.display.print(morseToChar(morse));
+                ubit.sleep(500);
+            }
+        }
+
+        morse.clear();
+        endOfLetter = false;
+    }
+
+    ubit.display.clear();
+    ubit.sleep(50);*/
 }
 
-void sendLetter(char letter, uint32_t pause_duration) {
+/*void detectEndOfLetterButton() {
 
-    P1.setDigitalValue(true);
-    uBit.sleep(pause_duration);
-    P1.setDigitalValue(false);
-}
+    endOfLetter = false;
+    uint64_t start_time;
+    uint64_t signal_non_duration;
+
+    start_time = system_timer_current_time();
+
+    while (!buttonA.isPressed() && !endOfLetter) {
+
+        signal_non_duration = system_timer_current_time() - start_time;
+
+        if (signal_non_duration > 1500) {
+
+            endOfLetter = true;
+        }
+
+        ubit.sleep(10);
+    }
+}*/
